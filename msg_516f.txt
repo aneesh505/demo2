@@ -1,3 +1,0 @@
-Possible hardcoded password: 'super-secret-key-123'
-
-Co-Authored-By: Claude Code <noreply@anthropic.com>
