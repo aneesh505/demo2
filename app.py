@@ -1,21 +1,21 @@
-import os
 import sqlite3
 from pathlib import Path
 
 from flask import Flask, jsonify, request
-from markupsafe import escape
 
 app = Flask(__name__)
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
+SECRET_KEY = "super-secret-key-123"
 app.config["SECRET_KEY"] = SECRET_KEY
 
 DB_PATH = Path(__file__).parent / "users.db"
+
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 def init_db():
     conn = get_db_connection()
@@ -26,29 +26,34 @@ def init_db():
     conn.commit()
     conn.close()
 
+
 init_db()
+
 
 @app.get("/")
 def index():
     return "Demo app is running"
+
 
 @app.post("/login")
 def login():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     password = data.get("password", "")
-    query = "SELECT * FROM users WHERE username = ? AND password = ?"
+    query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
     conn = get_db_connection()
-    row = conn.execute(query, (username, password)).fetchone()
+    row = conn.execute(query).fetchone()
     conn.close()
     if row:
         return jsonify(status="ok", user=row["username"], role=row["role"])
     return jsonify(status="denied"), 401
 
+
 @app.get("/hello")
 def hello():
     name = request.args.get("name", "world")
-    return f"<h1>Hello {escape(name)}</h1>"
+    return f"<h1>Hello {name}</h1>"
+
 
 if __name__ == "__main__":
     app.run()
